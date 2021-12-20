@@ -1,0 +1,73 @@
+#YAML file for automating AWS build deploy
+#This workflow is triggered when a PR is merged on the feature branch
+#It then tries to build the project, run the tests, and then deploy the ipa on AWS on zoma.to/consumer/feature link
+
+name: deploy_beta_to_airport
+
+on:
+  push:
+    branches: actions_dev
+
+jobs:
+
+  checkout_zomato_ios:
+    runs-on: macos-latest
+    name: Checking out Demo iOS
+    steps:
+
+      - id: select_default_xcode
+        name: Select Xcode
+        run: |
+          pwd
+          ls -n /Applications/ | grep Xcode*
+          sudo xcode-select -s /Applications/Xcode_12.5.1.app
+          ls
+
+
+      - id: checkout_demo_ios
+        name: Checkout demo-ios repo
+        uses: actions/checkout@v2.4.0
+        with:
+          path: Demo
+          ref: main
+
+    
+          
+      - id: run_carthage_file
+        name: Install carthage
+        run: |
+          cd Some
+          carthage build --platform iOS
+          
+          
+# Cache carthage file          
+            
+#      - id: install_gpg
+#       name: Install gpg
+#        run: brew install gnupg
+
+#      - id: decrypt_provisioning_enterprise
+#        name: Decrypt provisioning profile & Certificates
+#        env:
+#          EnterpriseCertificateProvisioningDecryptKey: ${{ secrets.EnterpriseCertificateProvisioningDecryptKey }}
+#        run: |
+#          pwd
+#          ls
+#          bash zomato-ios/AppScripts/Decrypt/decrypt_provisioning_enterprise.sh
+#- id: archive_zomato_ios
+#        name: Archive Zomato iOS
+#        run: bash zomato-ios/AppScripts/Archive/archive_dev.sh
+
+#- id: export_archive_to_enterprise_ipa
+#        name: Exporting archive as Enterprise .ipa
+#        run: bash zomato-ios/AppScripts/Export/export_enterprise.sh
+
+
+#      - id: create_zomato_ios_ipa
+#        name: Creating Zomato iOS ipa
+#        run: |
+#          cd zomato-ios
+#          fastlane travis
+#      - id: upload_ipa_to_aws
+#        name: Uploading .ipa
+#        run: node zomato-ios/AppScripts/Uploader/index.js --cstt_v15
